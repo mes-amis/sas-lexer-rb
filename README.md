@@ -65,7 +65,7 @@ You only need to build from source when contributing a prebuilt for a new platfo
 Prerequisites:
 
 - Rust toolchain (https://rustup.rs/)
-- Ruby 3.2+
+- Ruby 3.4+
 
 ```sh
 bundle install
