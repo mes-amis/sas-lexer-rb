@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write   # create the v<version> tag + GitHub release
-      id-token: write   # for trusted publishing to RubyGems (optional)
+      id-token: write   # OIDC token for RubyGems trusted publishing
 
     steps:
       - uses: actions/checkout@v4
@@ -50,14 +50,14 @@ jobs:
           gem build sas-lexer.gemspec
           ls -1 sas-lexer-*.gem
 
-      - name: Configure RubyGems credentials
+      # Trusted publishing: RubyGems issues a short-lived API key in
+      # exchange for the GitHub OIDC token. Bypasses MFA on the
+      # publishing account. Requires a Trusted Publisher entry on
+      # rubygems.org (Profile → Trusted Publishers) for this repo +
+      # workflow.
+      - name: Configure RubyGems credentials (OIDC trusted publishing)
         if: steps.check_tag.outputs.exists == 'false'
-        run: |
-          mkdir -p ~/.gem
-          printf -- '---\n:rubygems_api_key: %s\n' "$RUBYGEMS_API_KEY" > ~/.gem/credentials
-          chmod 0600 ~/.gem/credentials
-        env:
-          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        uses: rubygems/configure-rubygems-credentials@v1.0.0
 
       - name: Publish gem
         if: steps.check_tag.outputs.exists == 'false'
