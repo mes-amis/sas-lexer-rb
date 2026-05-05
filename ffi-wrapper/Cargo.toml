@@ -1,0 +1,12 @@
+[package]
+name = "sas-lexer-ffi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sas_lexer_ffi"
+crate-type = ["cdylib"]
+
+[dependencies]
+sas-lexer = { path = "../vendor/sas-lexer/crates/sas-lexer" }
+libc = "0.2"

@@ -1,0 +1,12 @@
+AllCops:
+  TargetRubyVersion: 3.2
+  NewCops: disable
+  Exclude:
+    - "vendor/**/*"
+    - "ffi-wrapper/target/**/*"
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes

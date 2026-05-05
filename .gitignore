@@ -1,0 +1,26 @@
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+
+Gemfile.lock
+
+# rspec failure tracking
+.rspec_status
+
+# Built sas-lexer artifacts.
+# - The flat path is the dev-mode build target (`rake sas_lexer:install`)
+#   and stays untracked.
+# - Per-platform prebuilt libraries that ship inside the published
+#   gem live under `lib/native/<platform>/` and ARE committed.
+/lib/native/libsas_lexer_ffi.dylib
+/lib/native/libsas_lexer_ffi.so
+/lib/native/sas_lexer_ffi.dll
+/vendor/sas-lexer/
+/ffi-wrapper/target/
+
+*.gem

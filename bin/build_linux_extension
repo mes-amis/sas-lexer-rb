@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Build the sas-lexer FFI wrapper for x86_64-linux inside Docker and
+# extract the resulting .so to `lib/native/x86_64-linux/`. Run from
+# any platform (typically macOS) — Docker isolates the build so the
+# host's `vendor/sas-lexer/` and `ffi-wrapper/target/` stay clean.
+#
+# Usage:
+#   bin/build_linux_extension                    # build with defaults
+#   SAS_LEXER_BRANCH=foo bin/build_linux_extension
+#
+# After it succeeds: `git add lib/native/x86_64-linux/libsas_lexer_ffi.so`
+# and commit. The publish workflow on push-to-main picks the new
+# directory up automatically and ships it inside the universal gem.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+IMAGE_TAG="sas-lexer-build-linux"
+TARGET_DIR="lib/native/x86_64-linux"
+ARTIFACT="libsas_lexer_ffi.so"
+
+cd "$ROOT"
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "build_linux_extension: docker is not installed or not in PATH" >&2
+  exit 1
+fi
+
+build_args=(
+  --build-arg "SAS_LEXER_BRANCH=${SAS_LEXER_BRANCH:-main}"
+)
+if [ -n "${SAS_LEXER_REPO:-}" ]; then
+  build_args+=( --build-arg "SAS_LEXER_REPO=${SAS_LEXER_REPO}" )
+fi
+
+echo "── Building Docker image (${IMAGE_TAG}) ──"
+# Image runs on the host's native arch (arm64 on Apple Silicon,
+# amd64 on Linux x86_64). Cross-compilation to x86_64-unknown-linux-gnu
+# happens inside via gcc-x86-64-linux-gnu — no QEMU emulation.
+docker build "${build_args[@]}" \
+  -t "$IMAGE_TAG" \
+  -f "$ROOT/docker/build-linux/Dockerfile" \
+  "$ROOT"
+
+echo "── Extracting ${ARTIFACT} ──"
+mkdir -p "$ROOT/$TARGET_DIR"
+container_id=$(docker create "$IMAGE_TAG")
+trap 'docker rm "$container_id" >/dev/null 2>&1 || true' EXIT
+docker cp "$container_id:/build/ffi-wrapper/target/x86_64-unknown-linux-gnu/release/${ARTIFACT}" \
+  "$ROOT/$TARGET_DIR/${ARTIFACT}"
+
+echo
+echo "✓ Wrote $TARGET_DIR/${ARTIFACT}"
+ls -la "$ROOT/$TARGET_DIR/${ARTIFACT}"
+file "$ROOT/$TARGET_DIR/${ARTIFACT}" 2>/dev/null || true
+
+cat <<MSG
+
+Next steps:
+  git add $TARGET_DIR/${ARTIFACT}
+  git commit -m "Refresh prebuilt FFI lib for x86_64-linux"
+  git push
+
+The publish workflow will pick up the refreshed prebuilt on the next
+push to main and ship it inside the universal sas-lexer gem.
+MSG
