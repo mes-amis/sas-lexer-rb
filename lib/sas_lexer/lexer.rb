@@ -14,27 +14,36 @@ module SasLexer
     gem_root = File.expand_path("../..", __dir__)
     lib_native_dir = File.join(gem_root, "lib", "native")
 
+    host_os = case RbConfig::CONFIG["host_os"]
+              when /darwin/ then "darwin"
+              when /linux/ then "linux"
+              when /mswin|mingw|cygwin/ then "windows"
+              else
+                raise SasLexer::Error,
+                      "Unsupported host OS: #{RbConfig::CONFIG["host_os"]}"
+              end
+
+    library_ext = { "darwin" => "dylib", "linux" => "so", "windows" => "dll" }.fetch(host_os)
+    host_platform = "#{RbConfig::CONFIG["host_cpu"]}-#{host_os}"
+
     # Probe order:
-    #   1. `lib/native/<platform>/libsas_lexer_ffi.<ext>` — prebuilt
-    #      artifact shipped inside the published universal gem. The
-    #      loader globs every committed platform dir and picks the
-    #      one that matches the host.
+    #   1. `lib/native/<host_cpu>-<host_os>/libsas_lexer_ffi.<ext>` —
+    #      prebuilt artifact shipped inside the published universal gem
+    #      for the host's exact platform.
     #   2. `lib/native/libsas_lexer_ffi.<ext>` — flat path produced
     #      by `bundle exec rake sas_lexer:install` for local
     #      development.
-    LIBRARY_PATH = (
-      Dir.glob(File.join(lib_native_dir, "*", "{libsas_lexer_ffi,sas_lexer_ffi}.{so,dylib,dll}")) + [
-        File.join(lib_native_dir, "libsas_lexer_ffi.so"),
-        File.join(lib_native_dir, "libsas_lexer_ffi.dylib"),
-        File.join(lib_native_dir, "sas_lexer_ffi.dll"),
-      ]
-    ).find { |path| File.exist?(path) }
+    LIBRARY_PATH = [
+      File.join(lib_native_dir, host_platform, "libsas_lexer_ffi.#{library_ext}"),
+      File.join(lib_native_dir, "libsas_lexer_ffi.#{library_ext}"),
+    ].find { |path| File.exist?(path) }
 
     if LIBRARY_PATH.nil?
       raise SasLexer::Error,
-            "Could not find a prebuilt sas-lexer FFI library under " \
-            "lib/native/. Build one with `bundle exec rake sas_lexer:install` " \
-            "or add a prebuilt for #{RUBY_PLATFORM} under lib/native/<platform>/."
+            "Could not find a prebuilt sas-lexer FFI library at " \
+            "lib/native/#{host_platform}/libsas_lexer_ffi.#{library_ext}. " \
+            "Build one with `bundle exec rake sas_lexer:install` " \
+            "or add a prebuilt for #{host_platform} under lib/native/."
     end
 
     ffi_lib LIBRARY_PATH
