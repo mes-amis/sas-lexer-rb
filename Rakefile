@@ -15,24 +15,25 @@ RuboCop::RakeTask.new
 # adding a new platform) by cloning the upstream Rust crate and
 # compiling the FFI shim under `ffi-wrapper/`.
 namespace :sas_lexer do
-  SAS_LEXER_REPO = "https://github.com/craigmcnamara/sas-lexer.git"
-  SAS_LEXER_BRANCH = "main"
+  SAS_LEXER_REPO = "https://github.com/mishamsk/sas-lexer.git"
+  # The upstream release the native libraries are built from.
+  SAS_LEXER_REF = "rust-v1.0.0"
   SAS_LEXER_DIR = "vendor/sas-lexer"
   LIB_DIR = "lib/native"
 
-  desc "Clone (or update) the upstream sas-lexer repository"
+  desc "Clone (or update) the upstream sas-lexer repository at SAS_LEXER_REF"
   task :clone do
     if Dir.exist?(SAS_LEXER_DIR)
       puts "SAS Lexer repository already exists at #{SAS_LEXER_DIR}"
       puts "Updating repository..."
       Dir.chdir(SAS_LEXER_DIR) do
-        sh "git fetch origin"
-        sh "git reset --hard origin/#{SAS_LEXER_BRANCH}"
+        sh "git fetch --tags origin"
+        sh "git checkout --detach #{SAS_LEXER_REF}"
       end
     else
       puts "Cloning sas-lexer repository..."
       FileUtils.mkdir_p("vendor")
-      sh "git clone --branch #{SAS_LEXER_BRANCH} #{SAS_LEXER_REPO} #{SAS_LEXER_DIR}"
+      sh "git clone --branch #{SAS_LEXER_REF} #{SAS_LEXER_REPO} #{SAS_LEXER_DIR}"
     end
   end
 

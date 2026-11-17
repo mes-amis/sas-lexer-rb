@@ -74,7 +74,7 @@ bundle exec rake sas_lexer:install
 
 This:
 
-1. Clones the upstream `sas-lexer` repo into `vendor/sas-lexer/`.
+1. Clones the upstream [`mishamsk/sas-lexer`](https://github.com/mishamsk/sas-lexer) repo into `vendor/sas-lexer/` at the release tag `SAS_LEXER_REF` names in the `Rakefile` (currently `rust-v1.0.0`).
 2. Compiles the FFI shim under `ffi-wrapper/` against it.
 3. Installs the resulting shared library at `lib/native/libsas_lexer_ffi.<ext>`.
 

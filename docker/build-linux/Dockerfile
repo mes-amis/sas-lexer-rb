@@ -23,13 +23,13 @@ RUN rustup target add x86_64-unknown-linux-gnu
 
 ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-linux-gnu-gcc
 
-ARG SAS_LEXER_REPO=https://github.com/craigmcnamara/sas-lexer.git
-ARG SAS_LEXER_BRANCH=main
+ARG SAS_LEXER_REPO=https://github.com/mishamsk/sas-lexer.git
+ARG SAS_LEXER_REF=rust-v1.0.0
 
 WORKDIR /build
 
 # Clone sas-lexer with shallow history — we only need the source.
-RUN git clone --branch "$SAS_LEXER_BRANCH" --depth 1 "$SAS_LEXER_REPO" /build/vendor/sas-lexer
+RUN git clone --branch "$SAS_LEXER_REF" --depth 1 "$SAS_LEXER_REPO" /build/vendor/sas-lexer
 
 # ffi-wrapper's Cargo.toml references `../vendor/sas-lexer/...` as a
 # path dependency, so the relative layout inside the container has to

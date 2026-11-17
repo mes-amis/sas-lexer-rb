@@ -6,7 +6,7 @@
 #
 # Usage:
 #   bin/build_linux_extension                    # build with defaults
-#   SAS_LEXER_BRANCH=foo bin/build_linux_extension
+#   SAS_LEXER_REF=rust-v1.0.0 bin/build_linux_extension   # a release tag or branch
 #
 # After it succeeds: `git add lib/native/x86_64-linux/libsas_lexer_ffi.so`
 # and commit. The publish workflow on push-to-main picks the new
@@ -27,7 +27,7 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 build_args=(
-  --build-arg "SAS_LEXER_BRANCH=${SAS_LEXER_BRANCH:-main}"
+  --build-arg "SAS_LEXER_REF=${SAS_LEXER_REF:-rust-v1.0.0}"
 )
 if [ -n "${SAS_LEXER_REPO:-}" ]; then
   build_args+=( --build-arg "SAS_LEXER_REPO=${SAS_LEXER_REPO}" )
